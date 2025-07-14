@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Container, Box } from '@mui/material';
 import { useUserRole } from './context/UserRoleContext';
 import Header from './components/Header';
-import Login from './components/Login';
+import LoginSelection from './components/LoginSelection';
 import Dashboard from './components/Dashboard';
 import DevRoleSwitcher from './components/DevRoleSwitcher';
 import ProjectList from './components/ProjectList';
@@ -18,7 +18,7 @@ function App() {
   const isAuthenticated = role !== 'Guest';
 
   if (!isDevelopment && !isAuthenticated) {
-    return <Login />;
+    return <LoginSelection />;
   }
 
   return (

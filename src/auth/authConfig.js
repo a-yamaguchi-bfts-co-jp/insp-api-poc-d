@@ -43,6 +43,22 @@ export const loginRequest = {
   scopes: ['User.Read'],
 };
 
+// Internal user login request with additional scopes
+export const internalLoginRequest = {
+  scopes: ['User.Read', 'api://insp-api-poc/Internal.Access'],
+  extraQueryParameters: {
+    user_type: 'internal'
+  }
+};
+
+// Supplier login request with specific scopes
+export const supplierLoginRequest = {
+  scopes: ['User.Read', 'api://insp-api-poc/Supplier.Access'],
+  extraQueryParameters: {
+    user_type: 'supplier'
+  }
+};
+
 // Add the endpoints here for Microsoft Graph API services you'd like to use.
 export const graphConfig = {
   graphMeEndpoint: 'https://graph.microsoft.com/v1.0/me',

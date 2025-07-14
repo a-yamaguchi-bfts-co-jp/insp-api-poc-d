@@ -29,77 +29,90 @@ React + Material-UIで構築された検査システムのフロントエンド�
 - **React Router** (ルーティング)
 - **Axios** (HTTP通信)
 
-## セットアップと環境別の動作
+## セットアップ
 
-### 1. ローカル開発環境 (`local_poc` ブランチ)
+### 1. 依存関係のインストール
 
-#### 1.1 セットアップ
 ```bash
-# 依存関係のインストール
 npm install
+```
 
-# 環境変数ファイルを作成
-# .env.local というファイル名で、以下の内容を記述します
+### 2. 環境変数の設定
+
+#### ローカル開発環境
+ローカル開発では、プロジェクトルートに `.env.local` ファイルを作成し、APIサーバーのURLを設定します。
+
+```env
+# .env.local
 REACT_APP_API_BASE_URL=http://localhost:5000
-
-# 開発サーバーの起動
-npm start
 ```
-アプリケーションは `http://localhost:3000` で起動します。
+認証関連の変数は、ローカル開発では使用されません。
 
-#### 1.2 動作仕様
-- **認証**: 認証はバイパスされます。画面右下の「Dev Role Switcher」で役割（Internal/Supplier）を動的に切り替えてテストします。
-- **API接続**: ローカルで起動しているバックエンド (`http://localhost:5000`) に接続します。
-
-### 2. Azure環境 (dev / staging / main)
-
-#### 2.1 セットアップ
-Azure環境では、CI/CDパイプラインによって自動的にビルドとデプロイが行われます。手動でのセットアップは基本的に不要です。
-
-#### 2.2 環境変数
-APIの接続先や認証情報は、Azure Static Web Appsの **[構成]** メニューで環境変数として設定します。
+#### Azure環境 (Azure開発 / ステージング / 本番)
+Azure上の各環境では、すべての設定をAzure Static Web Appsの **[構成]** で管理します。以下は設定例です。
 
 ```
-# 例: Azure開発環境の設定
-REACT_APP_API_BASE_URL = "https://dev-api.example.com"
-
-# 例: ステージング/本番環境の設定
-REACT_APP_API_BASE_URL = "https://stg-api.example.com"
-REACT_APP_AUTH_AUTHORITY = "https://login.microsoftonline.com/..."
+# アプリケーション設定のキーと値
+REACT_APP_API_BASE_URL = "https://..."
+REACT_APP_AUTH_AUTHORITY = "https://..."
 REACT_APP_AUTH_CLIENT_ID = "..."
 ```
 
-#### 2.3 動作仕様
-- **Azure開発環境 (`dev`ブランチ)**: 認証は無効化、または簡易認証で動作します。
-- **ステージング/本番環境 (`staging`/`main`ブランチ)**: Azure AD/Entra IDによる完全な認証が必須となります。
+### 3. 開発サーバーの起動
 
-## ビルドとデプロイ (Azure環境)
+```bash
+npm start
+```
 
-Azure環境へのデプロイは、CI/CDパイプラインによる自動化を推奨します。
+アプリケーションは http://localhost:3000 で起動します。
 
-### 1. ビルド
-デプロイの前に、最適化された本番用の静的ファイルを生成します。
+## 環境別の設定と動作
+
+### ローカル開発環境 (`local_poc` ブランチ)
+- **目的**: 迅速なUI開発とコンポーネントの単体テスト。
+- **認証**: 認証はバイパスされます。画面右下の「Dev Role Switcher」で役割（Internal/Supplier）を切り替えることで、権限に応じた表示を確認できます。
+- **API接続**: ローカルで起動しているバックエンド (`http://localhost:5000`) に接続します。接続先は `.env.local` ファイルで定義します。
+- **起動コマンド**: `npm start`
+
+### Azure開発環境 (`dev` ブランチ)
+- **目的**: Azure上のバックエンドサービスとの基本的な連携テスト。
+- **認証**: 認証は無効化、またはAPIキーなどの簡易的な認証を使用します。Azure AD/Entra IDとの連携は行いません。
+- **API接続**: Azure上の開発環境用バックエンドAPIに接続します。接続先はAzure Static Web Appsの環境変数で設定します。
+
+### ステージング環境 (`staging` ブランチ) / 本番環境 (`main` ブランチ)
+- **目的**: 本番リリース前の最終確認、および本番運用。
+- **認証**: 本番用のAzure AD/Entra IDテナントを使用した認証が必須です。
+- **API接続**: 各環境に対応するバックエンドAPIに接続します。
+- **ビルドコマンド**: `npm run build`
+
+## ビルド
+
+本番用ビルドを作成：
+
 ```bash
 npm run build
 ```
-このコマンドにより、プロジェクトのルートに `build` ディレクトリが作成され、デプロイに必要なファイルが格納されます。
 
-### 2. デプロイ
-生成された `build` ディレクトリを **Azure Static Web Apps** にデプロイします。
+ビルドファイルは`build/`ディレクトリに出力されます。
 
-#### 2.1. CI/CDパイプラインによる自動デプロイ (推奨)
-GitHub ActionsなどのCI/CDツールと連携させることで、特定のブランチ（例: `dev`, `staging`, `main`）へのプッシュをトリガーに、自動でビルドとデプロイを実行できます。Azure Static Web Appsリソース作成時のウィザードに従うことで、基本的なパイプラインは自動生成されます。
+## Azure Static Web Appsへのデプロイ
 
-#### 2.2. 手動デプロイ (Azure CLI)
-Azure CLIを使用して手動でデプロイすることも可能です。
+### GitHub Actions経由（推奨）
+
+1. GitHubリポジトリにコードをプッシュ
+2. Azure Static Web Appsリソースを作成時にGitHub連携を設定
+3. 自動的にCI/CDパイプラインが構築されます
+
+### 手動デプロイ
+
 ```bash
-# 1. ビルドを実行
+# ビルド
 npm run build
 
-# 2. Azure CLIでデプロイ
+# Azure CLI経由でデプロイ
 az staticwebapp deploy \
-  --name <あなたのStatic Web App名> \
-  --resource-group <リソースグループ名> \
+  --name your-static-web-app \
+  --resource-group your-resource-group \
   --source ./build
 ```
 
@@ -183,14 +196,13 @@ const isInternal = userRole === 'Internal';
 ## 開発時の注意事項
 
 ### CORS設定
-ローカル開発環境では、バックエンド側で`http://localhost:3000`からのアクセスが許可されている必要があります。
+開発時は`http://localhost:3000`からのアクセスを許可する必要があります。
 
 ### 認証設定
-- **ローカル開発環境**: 認証はバイパスされるため、Azure ADのセットアップは不要です。
-- **Azure環境**: ステージング・本番環境では、Azure ADにアプリケーションを登録し、リダイレクトURIなどを正しく設定する必要があります。
+Azure ADでSPAアプリケーションとして登録し、適切なリダイレクトURIを設定してください。
 
 ### API接続
-ローカル開発時は、バックエンドAPI (`http://localhost:5000`) が起動していることを確認してください。
+バックエンドAPIが起動していることを確認してください。
 
 ## トラブルシューティング
 
