@@ -215,3 +215,4 @@ const isInternal = userRole === 'Internal';
 ## ライセンス
 
 このプロジェクトはPOC（概念実証）用途で作成されています。
+
