@@ -1,48 +1,64 @@
 import React from 'react';
-import { Box, Button, ButtonGroup, Typography } from '@mui/material';
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Typography,
+  Paper
+} from '@mui/material';
 import { useUserRole } from '../context/UserRoleContext';
 
 const DevRoleSwitcher = () => {
-  const { role, setDevRole, isDevelopment } = useUserRole();
+  const { userRole, setUserRole } = useUserRole();
 
-  if (!isDevelopment) {
+  // Only show in development mode
+  if (process.env.NODE_ENV === 'production') {
     return null;
   }
 
+  const handleRoleChange = (event) => {
+    setUserRole(event.target.value);
+  };
+
   return (
-    <Box
-      sx={{
+    <Paper 
+      elevation={3} 
+      sx={{ 
         position: 'fixed',
-        bottom: 16,
+        top: 16,
         right: 16,
         p: 2,
-        bgcolor: 'rgba(0, 0, 0, 0.7)',
-        color: 'white',
-        borderRadius: 1,
-        zIndex: 9999,
+        zIndex: 1000,
+        backgroundColor: '#fff3cd',
+        border: '1px solid #ffeaa7',
+        minWidth: 200
       }}
     >
-      <Typography variant="caption" display="block" gutterBottom>
-        Dev Role Switcher
+      <Typography variant="caption" color="text.secondary" gutterBottom>
+        Development Mode
       </Typography>
-      <ButtonGroup variant="contained" size="small">
-        <Button
-          onClick={() => setDevRole('Internal')}
-          disabled={role === 'Internal'}
+      <FormControl fullWidth size="small">
+        <InputLabel id="dev-role-label">User Role</InputLabel>
+        <Select
+          labelId="dev-role-label"
+          id="dev-role-select"
+          value={userRole || ''}
+          label="User Role"
+          onChange={handleRoleChange}
         >
-          Internal
-        </Button>
-        <Button
-          onClick={() => setDevRole('Supplier')}
-          disabled={role === 'Supplier'}
-        >
-          Supplier
-        </Button>
-      </ButtonGroup>
-      <Typography variant="body2" sx={{ mt: 1 }}>
-        Current Role: {role}
+          <MenuItem value="">
+            <em>No Role</em>
+          </MenuItem>
+          <MenuItem value="Internal">Internal User</MenuItem>
+          <MenuItem value="Supplier">Supplier User</MenuItem>
+        </Select>
+      </FormControl>
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+        Current: {userRole || 'None'}
       </Typography>
-    </Box>
+    </Paper>
   );
 };
 

@@ -1,32 +1,63 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useMsal } from '@azure/msal-react';
 
+// User role context
 const UserRoleContext = createContext();
 
-export const useUserRole = () => useContext(UserRoleContext);
-
+// User role provider component
 export const UserRoleProvider = ({ children }) => {
-  // 開発環境用の擬似的なロール状態
-  const [devRole, setDevRole] = useState('Internal'); 
+  const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { accounts, instance } = useMsal();
 
-  const { accounts } = useMsal();
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  // 認証バイパス設定をチェック
+  const bypassAuth = process.env.REACT_APP_BYPASS_AUTH === 'true' || 
+                     process.env.NODE_ENV === 'development';
 
-  let role = 'Guest';
-  if (isDevelopment) {
-    // 開発環境では、擬似的なロールを使用
-    role = devRole;
-  } else if (accounts.length > 0) {
-    // 本番環境では、認証情報からロールを取得
-    role = accounts[0]?.idTokenClaims?.roles?.[0] || 'Guest';
-  }
+  useEffect(() => {
+    const determineUserRole = async () => {
+      try {
+        // 認証バイパス時はデフォルトでInternalロールを設定
+        if (bypassAuth) {
+          setUserRole('Internal');
+        } else if (accounts && accounts.length > 0) {
+          const account = accounts[0];
+          
+          // Check if user has specific roles in their token claims
+          // This is a simplified role determination logic
+          const userEmail = account.username;
+          
+          // Default role assignment based on email domain or other criteria
+          if (userEmail && userEmail.includes('admin')) {
+            setUserRole('Internal');
+          } else if (userEmail && userEmail.includes('supplier')) {
+            setUserRole('Supplier');
+          } else {
+            // Default to Internal for authenticated users
+            setUserRole('Internal');
+          }
+        } else {
+          setUserRole(null);
+        }
+      } catch (error) {
+        console.error('Error determining user role:', error);
+        setUserRole(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    determineUserRole();
+  }, [accounts, instance, bypassAuth]);
 
   const value = {
-    role,
-    setDevRole, // 開発時のみ使用
-    isInternal: role === 'Internal',
-    isSupplier: role === 'Supplier',
-    isDevelopment,
+    userRole,
+    setUserRole,
+    loading,
+    bypassAuth,
+    isInternal: userRole === 'Internal',
+    isSupplier: userRole === 'Supplier',
+    isAuthenticated: userRole !== null
   };
 
   return (
@@ -35,3 +66,16 @@ export const UserRoleProvider = ({ children }) => {
     </UserRoleContext.Provider>
   );
 };
+
+// Custom hook to use user role context
+export const useUserRole = () => {
+  const context = useContext(UserRoleContext);
+  
+  if (context === undefined) {
+    throw new Error('useUserRole must be used within a UserRoleProvider');
+  }
+  
+  return context;
+};
+
+export default UserRoleContext;

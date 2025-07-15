@@ -1,5 +1,24 @@
 import { LogLevel } from '@azure/msal-browser';
 
+// 認証バイパス設定
+export const authBypassEnabled = process.env.REACT_APP_BYPASS_AUTH === 'true' || 
+                                 process.env.REACT_APP_ENVIRONMENT === 'development';
+
+// 認証バイパス用のダミーユーザー
+export const bypassUser = {
+  account: {
+    username: 'bypass-user@example.com',
+    name: 'Bypass User (開発用)',
+    localAccountId: 'bypass-local-id',
+    homeAccountId: 'bypass-home-id',
+    environment: 'bypass',
+    tenantId: 'bypass-tenant',
+    roles: ['Internal'] // デフォルト役割
+  },
+  idToken: 'bypass-id-token',
+  accessToken: 'bypass-access-token'
+};
+
 // MSAL configuration
 export const msalConfig = {
   auth: {
@@ -38,25 +57,18 @@ export const msalConfig = {
   },
 };
 
+// ログ出力
+if (authBypassEnabled) {
+  console.log('🚨 認証バイパス機能が有効です (開発・検証用)');
+  console.log(`Environment: ${process.env.REACT_APP_ENVIRONMENT}`);
+  console.log(`Bypass Auth: ${process.env.REACT_APP_BYPASS_AUTH}`);
+} else {
+  console.log('🔒 認証機能が有効です');
+}
+
 // Add scopes here for ID token to be used at Microsoft identity platform endpoints.
 export const loginRequest = {
   scopes: ['User.Read'],
-};
-
-// Internal user login request with additional scopes
-export const internalLoginRequest = {
-  scopes: ['User.Read', 'api://insp-api-poc/Internal.Access'],
-  extraQueryParameters: {
-    user_type: 'internal'
-  }
-};
-
-// Supplier login request with specific scopes
-export const supplierLoginRequest = {
-  scopes: ['User.Read', 'api://insp-api-poc/Supplier.Access'],
-  extraQueryParameters: {
-    user_type: 'supplier'
-  }
 };
 
 // Add the endpoints here for Microsoft Graph API services you'd like to use.

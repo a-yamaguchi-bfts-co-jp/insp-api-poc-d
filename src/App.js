@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Container, Box } from '@mui/material';
 import { useUserRole } from './context/UserRoleContext';
 import Header from './components/Header';
-import LoginSelection from './components/LoginSelection';
+import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import DevRoleSwitcher from './components/DevRoleSwitcher';
 import ProjectList from './components/ProjectList';
@@ -14,11 +14,15 @@ import NotificationList from './components/NotificationList';
 import ApprovalList from './components/ApprovalList';
 
 function App() {
-  const { role, isDevelopment } = useUserRole();
-  const isAuthenticated = role !== 'Guest';
+  const { userRole, loading, bypassAuth } = useUserRole();
+  const isAuthenticated = userRole !== null || bypassAuth;
 
-  if (!isDevelopment && !isAuthenticated) {
-    return <LoginSelection />;
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!bypassAuth && !isAuthenticated) {
+    return <Login />;
   }
 
   return (
